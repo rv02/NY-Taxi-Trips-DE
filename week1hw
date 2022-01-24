@@ -1,0 +1,146 @@
+## 1. Gcloud version
+
+Google Cloud SDK 369.0.0
+bq 2.0.72
+core 2022.01.14
+gsutil 5.6
+
+
+
+
+## 2. Terraform Apply Output
+
+Terraform used the selected providers to generate the following execution plan. Resource
+actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # google_bigquery_dataset.dataset will be created
+  + resource "google_bigquery_dataset" "dataset" {
+      + creation_time              = (known after apply)
+      + dataset_id                 = "trips_data_all"
+      + delete_contents_on_destroy = false
+      + etag                       = (known after apply)
+      + id                         = (known after apply)
+      + last_modified_time         = (known after apply)
+      + location                   = "asia-south1"
+      + project                    = "cogent-transit-339013"
+      + self_link                  = (known after apply)
+
+      + access {
+          + domain         = (known after apply)
+          + group_by_email = (known after apply)
+          + role           = (known after apply)
+          + special_group  = (known after apply)
+          + user_by_email  = (known after apply)
+
+          + view {
+              + dataset_id = (known after apply)
+              + project_id = (known after apply)
+              + table_id   = (known after apply)
+            }
+        }
+    }
+
+  # google_storage_bucket.data-lake-bucket will be created
+  + resource "google_storage_bucket" "data-lake-bucket" {
+      + force_destroy               = true
+      + id                          = (known after apply)
+      + location                    = "ASIA-SOUTH1"
+      + name                        = "dtc_data_lake_cogent-transit-339013"
+      + project                     = (known after apply)
+      + self_link                   = (known after apply)
+      + storage_class               = "STANDARD"
+      + uniform_bucket_level_access = true
+      + url                         = (known after apply)
+
+      + lifecycle_rule {
+          + action {
+              + type = "Delete"
+            }
+
+          + condition {
+              + age                   = 30
+              + matches_storage_class = []
+              + with_state            = (known after apply)
+            }
+        }
+
+      + versioning {
+          + enabled = true
+        }
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+google_bigquery_dataset.dataset: Creating...
+google_storage_bucket.data-lake-bucket: Creating...
+google_storage_bucket.data-lake-bucket: Creation complete after 2s [id=dtc_data_lake_cogent-transit-339013]
+google_bigquery_dataset.dataset: Creation complete after 4s [id=projects/cogent-transit-339013/datasets/trips_data_all]
+
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+
+
+
+## Question 3
+
+
+SELECT COUNT(*) FROM yellow_taxi_trips
+WHERE tpep_pickup_datetime <= '2021-01-15 23:59:59'
+AND tpep_pickup_datetime >= '2021-01-15 00:00:00';
+
+Output - 53024
+
+
+
+## Question 4
+
+
+SELECT * FROM yellow_taxi_trips WHERE tip_amount IN(
+SELECT MAX(tip_amount) FROM yellow_taxi_trips
+WHERE tpep_pickup_datetime >= '2021-01-01 00:00:00'
+AND tpep_pickup_datetime <= '2021-01-31 23:59:59');
+
+Output - 2021-01-20
+
+
+## Question 5
+
+
+
+select COUNT(doz."Zone"), doz."Zone" from 
+yellow_taxi_trips as t, zones as puz, zones as doz
+where t."PULocationID" = puz."LocationID"
+and t."DOLocationID" = doz."LocationID"
+and puz."Zone" like 'Central Park'
+and tpep_pickup_datetime >= '2021-01-14 00:00:00'
+AND tpep_pickup_datetime <= '2021-01-14 23:59:59'
+GROUP BY doz."Zone" ORDER BY COUNT(doz."Zone") DESC
+LIMIT 1;
+
+
+Output - Upper East Side South
+
+
+## Question 6
+
+
+SELECT AVG(total_amount), CONCAT(
+	CASE WHEN puz."Zone" IS NULL THEN 'Unknown' ELSE puz."Zone" END,
+	'/', 
+	CASE WHEN doz."Zone" IS NULL THEN 'Unknown' ELSE doz."Zone" END) AS "pdpair" FROM 
+yellow_taxi_trips AS t, zones AS puz, zones AS doz
+WHERE t."PULocationID" = puz."LocationID"
+AND t."DOLocationID" = doz."LocationID"
+GROUP BY "pdpair"
+ORDER BY AVG(total_amount) DESC
+LIMIT 1;
+
+Output - Aplhabet City/Unknown

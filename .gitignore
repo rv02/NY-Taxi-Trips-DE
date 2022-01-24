@@ -1,0 +1,13 @@
+
+2.Docker_Sql/ny_taxi_postgres_data
+.DS_Store
+.idea
+*.tfstate
+*.tfstate.*
+**.terraform
+**.terraform.lock.*
+**google_credentials.json
+**logs/
+**.env
+**__pycache__/
+**keys.json

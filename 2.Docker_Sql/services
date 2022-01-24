@@ -1,0 +1,82 @@
+# Kill postgres
+
+sudo pkill postgres
+
+# Running PGAdmin
+
+docker run -it \
+    -p 80:80 \
+    -e 'PGADMIN_DEFAULT_EMAIL=admin@admin.com' \
+    -e 'PGADMIN_DEFAULT_PASSWORD=password' \
+    dpage/pgadmin4
+
+## PGcli
+
+pgcli -h localhost -p 5432 -u root -d ny_taxi    
+
+## Running postgres
+
+docker run -it \                                 
+    -e POSTGRES_USER="root" \
+    -e POSTGRES_PASSWORD="password" \
+    -e POSTGRES_DB="ny_taxi" \
+    -v /home/rv02/Desktop/DEZoompCamp/2.Docker_Sql/ny_taxi_postgres_data:/var/lib/postgresql/data \
+    -p 5432:5432 \
+    postgres:13
+
+
+## Network
+
+docker network create pg-network
+
+## Running Pgadmin and postgres together
+
+
+docker run -it \
+  -e POSTGRES_USER="root" \
+  -e POSTGRES_PASSWORD="password" \
+  -e POSTGRES_DB="ny_taxi" \
+  -v $(pwd)/ny_taxi_postgres_data:/var/lib/postgresql/data \
+  -p 5432:5432 \
+  --network=pg-network \
+  --name pg-database \
+  postgres:13
+
+docker run -it \
+  -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" \
+  -e PGADMIN_DEFAULT_PASSWORD="password" \
+  -p 80:80 \
+  --network=pg-network \
+  --name pgadmin-2 \
+  dpage/pgadmin4
+
+
+# Run locally ingest
+
+URL="https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_2021-01.csv"
+
+python ingest_data.py \
+  --user=root \
+  --password=password \
+  --host=localhost \
+  --port=5432 \
+  --db=ny_taxi \
+  --table_name=yellow_taxi_trips \
+  --url=${URL}
+
+# Run with Docker
+
+docker build -t taxi_ingest:v001 .
+
+URL="https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_2021-01.csv"
+
+docker run -it \
+  --network=pg-network \
+  taxi_ingest:v001 \
+    --user=root \
+    --password=password \
+    --host=pg-database \
+    --port=5432 \
+    --db=ny_taxi \
+    --table_name=yellow_taxi_trips \
+    --url=${URL}
