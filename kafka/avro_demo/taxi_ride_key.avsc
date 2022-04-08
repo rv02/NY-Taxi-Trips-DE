@@ -1,0 +1,11 @@
+{
+    "namespace": "com.rv02.nytaxi",
+    "type": "record",
+    "name": "TaxiRideKey",
+    "fields": [
+        {
+            "name": "vendorId",
+            "type": "int"
+        }
+    ]
+}
