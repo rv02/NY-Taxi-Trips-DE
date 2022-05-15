@@ -11,4 +11,4 @@
 **.env
 **__pycache__/
 **keys.json
-kafka/kafka_demo
+kafka
