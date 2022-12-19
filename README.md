@@ -1,1 +1,1 @@
-
+In this project, the data for New York taxi trips is downloaded and loaded to Google Cloud Storage where transformations are done. The data is then exposed to BigQuery as external tables which is then transformed into facts and dimensions using DBT in the sub-project. Finally, the dashboards are prepared using DataStudio. The infra is built using terraform and the task orchestration is done using Airflow on docker (local setup). 
